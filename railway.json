@@ -1,13 +1,10 @@
 {
-  "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "DART",
-    "buildCommand": "curl -fsSL https://gitee.com/mirrors/flutter/raw/main/flutter_install.sh | bash && flutter pub get && flutter build web --release",
-    "installCommand": "curl -fsSL https://gitee.com/mirrors/flutter/raw/main/flutter_install.sh | bash"
+    "builder": "NIXPACKS",
+    "buildCommand": "curl -fsSL https://mirrors.tuna.tsinghua.edu.cn/flutter_infra_release/releases/stable/linux/flutter_linux_3.24.0-stable.tar.xz -o /tmp/flutter.tar.xz && tar xf /tmp/flutter.tar.xz -C /opt && ln -sf /opt/flutter/bin/flutter /usr/local/bin && flutter pub get && flutter build web --release",
+    "installCommand": "apt-get update && apt-get install -y xz-utils curl git"
   },
   "deploy": {
-    "numReplicas": 1,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
+    "numReplicas": 1
   }
 }
