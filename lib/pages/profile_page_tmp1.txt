@@ -1,0 +1,345 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gongyu_guanjia/core/constants/app_constants.dart';
+import 'package:gongyu_guanjia/pages/login_page.dart';
+
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  String? _phone;
+  String _role = '租客';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final info = prefs.getString(AppConstants.userInfoKey);
+    if (info != null) {
+      // info is JSON like {"phone":"...","role":"..."}
+      final phone = RegExp(r'"phone":"([^"]+)"').firstMatch(info)?.group(1);
+      final role = RegExp(r'"role":"([^"]+)"').firstMatch(info)?.group(1);
+      if (mounted) setState(() {
+        _phone = phone;
+        _role = role == 'landlord' ? '房东' : '租客';
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLoggedIn = _phone != null;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      body: CustomScrollView(
+        slivers: [
+          // 用户卡片
+          SliverAppBar(
+            expandedHeight: 160,
+            floating: false,
+            pinned: true,
+            backgroundColor: const Color(0xFF00C853),
+            leading: const SizedBox(),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF00C853), Color(0xFF00873A)], begin: Alignment.topLeft, end: Alignment.bottomRight)),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 32,
+                              backgroundColor: Colors.white.withOpacity(0.25),
+                              child: Icon(Icons.person, size: 32, color: Colors.white),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: isLoggedIn
+                                  ? Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('用户 ${_phone?.substring(0, 3)}****${_phone?.substring(7)}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                        const SizedBox(height: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                                          child: Text(_role, style: const TextStyle(color: Colors.white, fontSize: 9)),
+                                        ),
+                                      ],
+                                    )
+                                  : Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text('未登录', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                                        const SizedBox(height: 4),
+                                        const Text('登录后享受更多服务', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                                      ],
+                                    ),
+                            ),
+                            if (isLoggedIn)
+                              OutlinedButton(
+                                onPressed: _logout,
+                                style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white)),
+                                child: const Text('退出', style: TextStyle(fontSize: 9)),
+                              ),
+                          ],
+                        ),
+                        if (isLoggedIn) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              _StatBadge(Icons.favorite, '收藏', '12'),
+                              const SizedBox(width: 16),
+                              _StatBadge(Icons.history, '浏览', '38'),
+                              const SizedBox(width: 16),
+                              _StatBadge(Icons.star, '积分', '560'),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // 未登录提示
+          if (!isLoggedIn)
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: const Color(0xFF00C853).withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: Color(0xFF00C853), size: 20),
+                    const SizedBox(width: 10),
+                    const Expanded(child: Text('登录后查看完整订单和服务记录', style: TextStyle(fontSize: 10, color: Color(0xFF00C853)))),
+                    ElevatedButton(
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage())),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00C853), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6)),
+                      child: const Text('登录', style: TextStyle(fontSize: 10)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // 房租提醒（7天内）
+          SliverToBoxAdapter(
+            child: isLoggedIn
+              ? _buildRentReminderBanner(context)
+              : const SizedBox.shrink(),
+          ),
+
+          // 功能区
+          SliverToBoxAdapter(child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
+                child: Text('订单服务', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+              _MenuTile(Icons.receipt_long, '租房订单', '签约订单管理', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RentOrderListPage()))),
+              _MenuTile(Icons.shopping_bag, '好物订单', '商品订单查询与售后', () => _goGoodsOrders(context)),
+              _MenuTile(Icons.payment, '房租支付', '租金缴纳与结果查询', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RentPaymentPage()))),
+              _MenuTile(Icons.favorite_outline, '我的收藏', '收藏的房源和商品', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyFavoritesPage()))),
+              _MenuTile(Icons.history, '浏览历史', '最近查看的房源', () => Navigator.push(context, MaterialPageRoute(builder: (_) => const BrowseHistoryPage()))),
+            ]),
+          )),
+
+          SliverToBoxAdapter(child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
+                child: Text('预约记录', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+              _MenuTile(Icons.calendar_month, '看房预约', '预约记录与取消', () => _showLoginRequired(context)),
+              _MenuTile(Icons.payment, '缴费记录', '租金缴纳历史', () => _showLoginRequired(context)),
+              _MenuTile(Icons.message_outlined, '消息通知', '房东回复、系统通知', () => _showLoginRequired(context)),
+            ]),
+          )),
+
+          SliverToBoxAdapter(child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Padding(
+                padding: EdgeInsets.fromLTRB(16, 14, 16, 8),
+                child: Text('更多服务', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              ),
+              _MenuTile(Icons.help_outline, '帮助中心', '常见问题解答', () {}),
+              _MenuTile(Icons.feedback_outlined, '意见反馈', '您的建议是我们进步的动力', () {}),
+              _MenuTile(Icons.info_outline, '关于我们', '自优租 v1.0.0', () {}),
+              _MenuTile(Icons.settings_outlined, '设置', '账号安全与偏好设置', () {}),
+            ]),
+          )),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
+    );
+  }
+
+  void _showLoginRequired(BuildContext context) {
+    if (_phone != null) return; // already logged in
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.lock_outline, size: 48, color: Color(0xFF00C853)),
+          const SizedBox(height: 16),
+          const Text('登录后使用此功能', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), child: const Text('稍后再说'))),
+            const SizedBox(width: 12),
+            Expanded(child: ElevatedButton(
+              onPressed: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginPage())); },
+              child: const Text('立即登录'),
+            )),
+          ]),
+        ]),
+      ),
+    );
+  }
+
+  void _goGoodsOrders(BuildContext context) {
+    // 直接跳转到购物页订单tab
+    Navigator.pushNamed(context, '/goods-orders');
+  }
+
+  Widget _buildRentReminderBanner(BuildContext context) {
+    final upcomingRents = [
+      _RentItem(id: 'RZ2024001', room: '陆家嘴公寓 A栋801', tenant: '张明', phone: '138****1234', amount: 4500, dueDate: DateTime.now().add(const Duration(days: 7)), status: '待支付', period: '2024年4月'),
+      _RentItem(id: 'RZ2024002', room: '陆家嘴公寓 A栋802', tenant: '李华', phone: '139****5678', amount: 3800, dueDate: DateTime.now().add(const Duration(days: 3)), status: '待支付', period: '2024年4月'),
+    ];
+    final validRents = upcomingRents.where((r) => r.daysLeft >= 0 && r.daysLeft <= 7).toList();
+    if (validRents.isEmpty) return const SizedBox.shrink();
+    final totalAmount = validRents.fold<double>(0, (s, r) => s + r.amount);
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RentPaymentPage())),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [Color(0xFFFF5722), Color(0xFFFF8A65)], begin: Alignment.centerLeft, end: Alignment.centerRight),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(children: [
+          Container(
+            width: 44, height: 44,
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+            child: const Icon(Icons.notifications_active, color: Colors.white, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('房租待缴提醒', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 4),
+            Text('您有 ${validRents.length} 笔房租将在7天内到期，共 ¥${totalAmount.toStringAsFixed(0)}，点击立即缴纳 >', style: const TextStyle(fontSize: 10, color: Colors.white70)),
+          ])),
+        ]),
+      ),
+    );
+  }
+
+  void _goExpressPage(BuildContext context) {
+    Navigator.pushNamed(context, '/express');
+  }
+
+  void _logout() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('退出登录'),
+        content: const Text('确定退出当前账号？'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('确定', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+    if (ok == true && mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(AppConstants.tokenKey);
+      await prefs.remove(AppConstants.userRoleKey);
+      await prefs.remove(AppConstants.userInfoKey);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
+    }
+  }
+}
+
+class _StatBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _StatBadge(this.icon, this.label, this.value);
+  @override
+  Widget build(BuildContext context) => Row(children: [
+    Icon(icon, size: 12, color: Colors.white70),
+    const SizedBox(width: 4),
+    Text(value, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+    const SizedBox(width: 2),
+    Text(label, style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 9)),
+  ]);
+}
+
+class _MenuTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  const _MenuTile(this.icon, this.title, this.subtitle, this.onTap);
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    dense: true,
+    leading: Container(
+      padding: const EdgeInsets.all(7),
+      decoration: BoxDecoration(color: const Color(0xFF00C853).withOpacity(0.08), borderRadius: BorderRadius.circular(8)),
+      child: Icon(icon, size: 18, color: const Color(0xFF00C853)),
+    ),
+    title: Text(title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500)),
+    subtitle: Text(subtitle, style: const TextStyle(fontSize: 9, color: Color(0xFF9E9E9E))),
+    trailing: const Icon(Icons.chevron_right, size: 16, color: Color(0xFFBDBDBD)),
+    onTap: onTap,
+  );
+}
+
+// ==================== 房租支付页面 ====================

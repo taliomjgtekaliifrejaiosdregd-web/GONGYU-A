@@ -1,0 +1,7 @@
+class LandlordAcquisitionPage extends StatefulWidget {
+  const LandlordAcquisitionPage({super.key});
+
+  @override
+  State<LandlordAcquisitionPage> createState() => _LandlordAcquisitionPageState();
+}
+

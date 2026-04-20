@@ -1,0 +1,135 @@
+class _TenantRoomDetail extends StatelessWidget {
+  final Room room;
+  const _TenantRoomDetail({required this.room});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 200,
+            pinned: true,
+            backgroundColor: const Color(0xFF6366F1),
+            leading: IconButton(
+              icon: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle), child: const Icon(Icons.arrow_back, size: 16, color: Colors.white)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(icon: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle), child: const Icon(Icons.favorite_border, size: 16, color: Colors.white)), onPressed: () {}),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                color: const Color(0xFFE8F5E9),
+                child: Center(child: Icon(Icons.apartment, size: 80, color: const Color(0xFF6366F1).withOpacity(0.3))),
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                Container(color: Colors.white, padding: const EdgeInsets.all(14), child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      Text(room.priceText, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFEF4444))),
+                      const Text('/月', style: TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
+                      const Spacer(),
+                      Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFF6366F1).withOpacity(0.1), borderRadius: BorderRadius.circular(4)), child: const Text('已认证', style: TextStyle(fontSize: 8, color: Color(0xFF6366F1)))),
+                    ]),
+                    const SizedBox(height: 8),
+                    Text(room.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Row(children: [
+                      const Icon(Icons.location_on, size: 12, color: Color(0xFF9E9E9E)),
+                      const SizedBox(width: 2),
+                      Expanded(child: Text(room.address, style: const TextStyle(fontSize: 9, color: Color(0xFF9E9E9E)))),
+                    ]),
+                    const SizedBox(height: 10),
+                    Wrap(spacing: 6, runSpacing: 6, children: room.facilities.map((t) => Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3), decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(4)), child: Text(t, style: const TextStyle(fontSize: 9, color: Color(0xFF757575))))).toList()),
+                  ],
+                )),
+                const SizedBox(height: 10),
+                Container(color: Colors.white, padding: const EdgeInsets.all(14), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Text('房屋配置', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Row(children: [_Cf(Icons.bed, '床'), _Cf(Icons.kitchen, '厨房'), _Cf(Icons.wifi, 'WiFi'), _Cf(Icons.ac_unit, '空调'), _Cf(Icons.local_laundry_service, '洗衣')]),
+                  const SizedBox(height: 8),
+                  Row(children: [_Cf(Icons.tv, '电视'), _Cf(Icons.hot_tub, '热水器'), _Cf(Icons.elevator, '电梯'), _Cf(Icons.local_parking, '车位'), _Cf(Icons.cleaning_services, '保洁')]),
+                ])),
+                const SizedBox(height: 100),
+              ],
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8)]),
+        child: SafeArea(
+          child: Row(
+            children: [
+              OutlinedButton.icon(onPressed: () {}, icon: const Icon(Icons.phone, size: 14), label: const Text('联系房东'), style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF6366F1), side: const BorderSide(color: Color(0xFF6366F1)), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8))),
+              const SizedBox(width: 10),
+              Expanded(child: ElevatedButton(onPressed: () => _showReserveSheet(context), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 10)), child: const Text('立即预约', style: TextStyle(fontSize: 11)))),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showReserveSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('立即预约看房', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(10)),
+            child: Row(children: [
+              Container(
+                width: 60,
+                height: 50,
+                decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(6)),
+                child: const Icon(Icons.apartment, color: Color(0xFF6366F1), size: 24),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(room.title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(room.address, style: const TextStyle(fontSize: 8, color: Color(0xFF9E9E9E))),
+              ])),
+              Text(room.priceText, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFEF4444))),
+            ]),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('预约成功！我们将尽快联系您'), behavior: SnackBarBehavior.floating),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6366F1),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('确认预约', style: TextStyle(fontSize: 11)),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ]),
+      ),
+    );
+  }
+}
+

@@ -1,0 +1,15 @@
+Widget _buildDashboard() => SliverToBoxAdapter(child: _Card(
+    margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+    title: '数据看板',
+    child: Column(children: [
+      Row(children: [_Stat('近30日合同即将到期', '5', '户', AppColors.warning), const SizedBox(width: 8), _Stat('合同逾期数量', '2', '户', AppColors.danger)]),
+      const SizedBox(height: 10),
+      Row(children: [_Stat('近30日待收金额', '12.8', '万元', AppColors.success), const SizedBox(width: 8), _Stat('其中逾期', '0.3', '万元', AppColors.danger)]),
+      const Divider(height: 24),
+      Row(children: [Expanded(child: _Mini('全部房源', '24户')), Expanded(child: _Mini('已租', '18户', AppColors.success)), Expanded(child: _Mini('空置', '6户', AppColors.warning))]),
+      const SizedBox(height: 8),
+      Row(children: [Expanded(child: _Mini('出租率', '75%')), Expanded(child: _Mini('续签率', '82%')), Expanded(child: _Mini('收房均价', '4200元/月'))]),
+    ]),
+  ));
+
+  

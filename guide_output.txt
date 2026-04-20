@@ -1,0 +1,12 @@
+Widget _buildGuide() => SliverToBoxAdapter(child: _Card(
+    margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    child: GestureDetector(onTap: () {}, behavior: HitTestBehavior.opaque, child: Row(children: [
+      Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(12)), child: const Text('新手指引', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600))),
+      const SizedBox(width: 10),
+      const Expanded(child: Text('点击进入智慧房东使用教程', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+      const Icon(Icons.chevron_right, color: AppColors.textHint, size: 20),
+    ])),
+  ));
+
+  

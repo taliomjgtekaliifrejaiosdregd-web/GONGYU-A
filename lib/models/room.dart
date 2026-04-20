@@ -1,0 +1,172 @@
+// ============================================================
+// 房源相关模型
+// ============================================================
+
+/// 房源类型
+enum RoomType { whole, shared, building }
+
+/// 房源状态
+enum RoomStatus { available, rented, reserved, signing, unavailable }
+
+/// 小区模型
+class Community {
+  final int id;
+  final String name;
+  final String address;
+  final String district;
+
+  const Community({
+    required this.id,
+    required this.name,
+    required this.address,
+    this.district = '',
+  });
+}
+
+/// 房源模型
+class Room {
+  final int id;
+  final String title;
+  final RoomType type;
+  final String address;
+  final String communityId;
+  final String communityName;
+  final String? building;
+  final String? unit;
+  final String? roomNo;
+  final int floor;
+  final int totalFloors;
+  final double area;
+  final String layout;
+  final String? orientation;
+  final double price;
+  final double deposit;
+  final RoomStatus status;
+  final List<String> facilities;
+  final List<String> images;
+  final String? description;
+  final String? tenantName;
+  final String? tenantPhone;
+  final String? rentExpireDate;
+  final DateTime? publishedAt;
+  /// 是否上架（上架后显示在租客端热门房源）
+  final bool isPublished;
+
+  const Room({
+    required this.id,
+    required this.title,
+    required this.type,
+    required this.address,
+    required this.communityId,
+    required this.communityName,
+    this.building,
+    this.unit,
+    this.roomNo,
+    this.floor = 1,
+    this.totalFloors = 6,
+    required this.area,
+    required this.layout,
+    this.orientation,
+    required this.price,
+    this.deposit = 0,
+    required this.status,
+    this.facilities = const [],
+    this.images = const [],
+    this.description,
+    this.tenantName,
+    this.tenantPhone,
+    this.rentExpireDate,
+    this.publishedAt,
+    this.isPublished = false,
+  });
+
+  /// 创建一个副本，可覆盖指定字段
+  Room copyWith({
+    int? id,
+    String? title,
+    RoomType? type,
+    String? address,
+    String? communityId,
+    String? communityName,
+    String? building,
+    String? unit,
+    String? roomNo,
+    int? floor,
+    int? totalFloors,
+    double? area,
+    String? layout,
+    String? orientation,
+    double? price,
+    double? deposit,
+    RoomStatus? status,
+    List<String>? facilities,
+    List<String>? images,
+    String? description,
+    String? tenantName,
+    String? tenantPhone,
+    String? rentExpireDate,
+    DateTime? publishedAt,
+    bool? isPublished,
+  }) {
+    return Room(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      type: type ?? this.type,
+      address: address ?? this.address,
+      communityId: communityId ?? this.communityId,
+      communityName: communityName ?? this.communityName,
+      building: building ?? this.building,
+      unit: unit ?? this.unit,
+      roomNo: roomNo ?? this.roomNo,
+      floor: floor ?? this.floor,
+      totalFloors: totalFloors ?? this.totalFloors,
+      area: area ?? this.area,
+      layout: layout ?? this.layout,
+      orientation: orientation ?? this.orientation,
+      price: price ?? this.price,
+      deposit: deposit ?? this.deposit,
+      status: status ?? this.status,
+      facilities: facilities ?? this.facilities,
+      images: images ?? this.images,
+      description: description ?? this.description,
+      tenantName: tenantName ?? this.tenantName,
+      tenantPhone: tenantPhone ?? this.tenantPhone,
+      rentExpireDate: rentExpireDate ?? this.rentExpireDate,
+      publishedAt: publishedAt ?? this.publishedAt,
+      isPublished: isPublished ?? this.isPublished,
+    );
+  }
+
+  String get typeLabel {
+    switch (type) {
+      case RoomType.whole: return '整租';
+      case RoomType.shared: return '合租';
+      case RoomType.building: return '独栋';
+    }
+  }
+
+  String get statusLabel {
+    switch (status) {
+      case RoomStatus.available: return '未出租';
+      case RoomStatus.rented: return '已出租';
+      case RoomStatus.reserved: return '预定中';
+      case RoomStatus.signing: return '签订中';
+      case RoomStatus.unavailable: return '不可出租';
+    }
+  }
+
+  bool get isAvailable => status == RoomStatus.available;
+  // ==================== 兼容层 getter（解决旧代码引用问题） ====================
+  String get district => communityName;
+  String get community => communityName;
+  String get layoutText => layout;
+  String get priceText => '${price}元/月';
+  String get roomType => typeLabel;
+  bool get isFavorite => false;
+  String get areaText => '${area} m²';
+  String get floorText => '${floor}/$totalFloors层';
+  String get landlordName => '';
+  String get landlordPhone => '';
+  double get latitude => 0;
+  double get longitude => 0;
+}

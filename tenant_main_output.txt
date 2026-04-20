@@ -1,0 +1,140 @@
+class _TenantMainPage extends StatelessWidget {
+  final TextEditingController searchController;
+  final String selectedCity;
+  final VoidCallback onCityTap;
+  final void Function(String) onSearchSubmit;
+
+  const _TenantMainPage({
+    required this.searchController,
+    required this.selectedCity,
+    required this.onCityTap,
+    required this.onSearchSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        // 顶部搜索 + 筛选
+        SliverToBoxAdapter(
+          child: _BeikeSearchBar(
+            searchController: searchController,
+            selectedCity: selectedCity,
+            onCityTap: onCityTap,
+            onMapTap: () => _showMapSheet(context),
+            onSearch: onSearchSubmit,
+          ),
+        ),
+
+        // 快捷筛选（横排）
+        SliverToBoxAdapter(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(10, 4, 10, 6),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _FilterChip('整租', true),
+                  _FilterChip('合租', false),
+                  _FilterChip('月付', false),
+                  _FilterChip('押一付一', false),
+                  _FilterChip('精装修', false),
+                  _FilterChip('近地铁', false),
+                ],
+              ),
+            ),
+          ),
+        ),
+
+        // 轮播横幅
+        SliverToBoxAdapter(
+          child: _BannerCarousel(onMapTap: () => _showMapSheet(context)),
+        ),
+
+        // Banner
+        SliverToBoxAdapter(child: Container(
+          margin: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+          height: 72,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [BoxShadow(color: const Color(0xFFF59E0B).withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const UtilityPaymentPage(tenantPhone: '13800000001'),
+              )),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44, height: 44,
+                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(10)),
+                      child: const Icon(Icons.bolt, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+                      const Text('在线缴费', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 2),
+                      Text('本月待缴水电费 ¥127.30，点击立即缴纳', style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 11)),
+                    ])),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                      child: const Text('去缴费', style: TextStyle(color: Color(0xFFF59E0B), fontSize: 12, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        )),
+
+        // 热门分类
+        SliverToBoxAdapter(child: Container(
+          margin: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('热门服务', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(child: _CatCard(Icons.home_work, '整租', const Color(0xFF6366F1))),
+              Expanded(child: _CatCard(Icons.meeting_room, '合租', const Color(0xFF06B6D4))),
+              Expanded(child: _CatCard(Icons.apartment, '公寓', const Color(0xFF9C27B0))),
+              Expanded(child: _CatCard(Icons.shopping_bag, '好货', const Color(0xFFE91E63))),
+              Expanded(child: _CatCard(Icons.payment, '缴费', const Color(0xFFF59E0B))),
+              Expanded(child: _CatCard(Icons.build, '报修', const Color(0xFF10B981))),
+            ]),
+          ]),
+        )),
+
+        // 精选房源标题
+        SliverToBoxAdapter(child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
+          child: Row(children: [
+            const Text('精选房源', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            const Text('查看更多', style: TextStyle(fontSize: 9, color: Color(0xFF9E9E9E))),
+            const Icon(Icons.chevron_right, size: 14, color: Color(0xFFBDBDBD)),
+          ]),
+        )),
+
+        // 精选房源列表 (两列网格)
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 100),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 0.72,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final room = MockService.rooms[index % MockService.rooms.length];
+                return _RoomGridCard(room:

@@ -1,0 +1,5 @@
+data = open(r'D:\Projects\gongyu_guanjia\lib\pages\landlord\add_device_page.dart', 'rb').read()
+lines = data.split(b'\n')
+print('L195:', repr(lines[194]))
+print('Parens in L195:', lines[194].count(b')'))
+print('L196:', repr(lines[195]))
