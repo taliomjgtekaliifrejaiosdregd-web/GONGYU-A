@@ -1,0 +1,8 @@
+[build]
+publish = "build/web"
+publishOrigin = "default"
+
+[build.processing]
+css = { bundle = true, minify = true }
+js = { bundle = true, minify = true }
+html = { pretty_urls = false }
